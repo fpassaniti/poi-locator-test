@@ -1,6 +1,5 @@
 <svelte:head>
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" />
-    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.2.0/mapbox-gl-geocoder.css' type='text/css' />
+
 </svelte:head>
 
 <style lang="scss" global>
@@ -21,14 +20,13 @@
 <script>
     import {onMount, setContext} from 'svelte';
     import mapbox from 'mapbox-gl/dist/mapbox-gl.js';
-    //import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+    // import { getNewGeocoder } from '../utils/mapbox-geocoder.js'
 
     mapbox.accessToken = 'pk.eyJ1IjoiZnBhc3Nhbml0aSIsImEiOiIxNTg3MGRlZWQyNjVkZjExMGVlNWVjNDFjOWQyNzNiMiJ9.pYKDlO4v-SNiDz08G9ZZoQ';
 
     let map;
     let container;
     let bounds = new mapbox.LngLatBounds();
-    let geocoder;
 
     setContext('mapbox', {
         mapbox: mapbox,
@@ -49,14 +47,14 @@
             trackUserLocation: true
         }));
 
-        /*geocoder = new MapboxGeocoder({
-            accessToken: mapbox.accessToken, // Set the access token
-            mapbox: mapbox, // Set the mapbox-gl instance
-            marker: true, // Use the geocoder's default marker style
-            bbox: [-77.210763, 38.803367, -76.853675, 39.052643] // Set the bounding box coordinates
-        });
+        const geocoder = new MapboxGeocoder({
+              accessToken: mapbox.accessToken, // Set the access token
+              mapbox: mapbox, // Set the mapbox-gl instance
+              marker: true, // Use the geocoder's default marker style
+              bbox: [-77.210763, 38.803367, -76.853675, 39.052643] // Set the bounding box coordinates
+          })
 
-        map.addControl(geocoder, 'top-right');*/
+        map.addControl(geocoder, 'top-right');
     });
 </script>
 
