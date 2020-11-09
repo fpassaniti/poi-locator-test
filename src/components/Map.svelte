@@ -21,7 +21,7 @@
 <script>
     import {onMount, setContext} from 'svelte';
     import mapbox from 'mapbox-gl/dist/mapbox-gl.js';
-    //import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+    // import { getNewGeocoder } from '../utils/mapbox-geocoder.js'
 
     mapbox.accessToken = 'pk.eyJ1IjoiZnBhc3Nhbml0aSIsImEiOiIxNTg3MGRlZWQyNjVkZjExMGVlNWVjNDFjOWQyNzNiMiJ9.pYKDlO4v-SNiDz08G9ZZoQ';
 
@@ -49,14 +49,9 @@
             trackUserLocation: true
         }));
 
-        /*geocoder = new MapboxGeocoder({
-            accessToken: mapbox.accessToken, // Set the access token
-            mapbox: mapbox, // Set the mapbox-gl instance
-            marker: true, // Use the geocoder's default marker style
-            bbox: [-77.210763, 38.803367, -76.853675, 39.052643] // Set the bounding box coordinates
-        });
-
-        map.addControl(geocoder, 'top-right');*/
+        // const geocoder = getNewGeocoder(mapbox)
+        //
+        // map.addControl(geocoder, 'top-right');
     });
 </script>
 
