@@ -20,7 +20,8 @@ export default {
 		file: 'public/build/bundle.js'
 	},
 	plugins: [
-		nodeResolve(),
+		commonjs(),
+		// nodeResolve(),
 		nodePolyfills(),
 		svelte({
 			// enable run-time checks when not in production
@@ -45,7 +46,6 @@ export default {
 			browser: true,
 			dedupe: ['svelte']
 		}),
-		commonjs(),
 
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated
