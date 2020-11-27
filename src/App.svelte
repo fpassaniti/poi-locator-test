@@ -1,35 +1,28 @@
 <script>
     import {onMount} from 'svelte';
-    import {records} from './utils/data.js'
     import Map from "./components/Map.svelte";
     import List from "./components/List.svelte";
-    import Marker from "./components/Marker.svelte";
     import ListItem from "./components/ListItem.svelte";
     import GeolocateControl from "./components/GeolocateControl.svelte";
     import Geocoder from "./components/Geocoder.svelte";
-    import MapStyleSelect from "./components/MapStyleSelect.svelte";
-
-    onMount(async () => {
-        await records.update();
-    });
+    import {geojson} from './utils/store2'
+    import {sortedGeojson} from './utils/sortedStore'
 </script>
 
-{#if $records !== []}
-    <Map>
-        <GeolocateControl></GeolocateControl>
-        <Geocoder></Geocoder>
-        <MapStyleSelect></MapStyleSelect>
-        {#each $records as record}
-            <Marker {record} />
-        {/each}
-    </Map>
 
-    <List>
-        {#each $records as record}
-            <ListItem {record} />
-        {/each}
-    </List>
-{/if}
+<Map>
+    <GeolocateControl></GeolocateControl>
+    <Geocoder></Geocoder>
+    <!--<MapStyleSelect></MapStyleSelect>-->
+    {#if $sortedGeojson.features !== []}
+        <List>
+            {#each $sortedGeojson.features as feature}
+                <ListItem {feature}/>
+            {/each}
+        </List>
+    {/if}
+</Map>
+
 
 
 <style global lang="scss">
