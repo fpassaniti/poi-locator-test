@@ -11,6 +11,7 @@ function createStore() {
         var url = getBaseUrl(config.data.domainid)(config.data.datasetid);
         url = getGeoJsonExportUrl(url);
         url = addWhereQuery(url)(whereQuery);
+        config.data.select && (url = addSelectQuery(url)(config.data.select));
         url = addRowsQuery(url)(-1);
 
         const promiseFromServ = await fetch(url);
@@ -18,14 +19,14 @@ function createStore() {
 
         geojson.features.forEach((feature) => {
             var type;
-            if (config.pictos[feature.properties.type_de_commerce]) {
-                type = config.pictos[feature.properties.type_de_commerce].name;
+            if (config.pictos[feature.properties[config.data.type_field]]) {
+                type = config.pictos[feature.properties[config.data.type_field]].name;
             } else {
                 type = config.pictos["default"].name;
-                console.warn(feature.properties.type_de_commerce + ' type doesn\'t exists in app config.');
+                console.warn(feature.properties[config.data.type_field] + ' type doesn\'t exists in app config.');
             }
             feature.properties.type = type;
-            feature.properties.name = feature.properties.nom_de_la_societe;
+            feature.properties.name = feature.properties[config.data.name_field];
             feature.properties.feature_id = createFeatureUniqueIDFromConfigAndProperties(feature.properties);
         });
         return geojson;

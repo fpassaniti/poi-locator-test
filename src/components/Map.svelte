@@ -13,7 +13,7 @@
 
     import {geojson} from '../utils/store2'
     import {mapPosition, listPosition, bounds} from '../utils/position'
-    import { media } from '../utils/mediaQueries';
+    import {media} from '../utils/mediaQueries';
     import config from '../../app.config'
     import {createDonutChart, createClusterProperties} from "../utils/mapHelpers";
 
@@ -30,28 +30,28 @@
         getMap: () => map
     });
 
-    $: map && map.getSource('data') && map.getSource('data').setData($geojson) && updateMarkers() && console.log('REACTIVE map setData (source updated) !');
-    $: map && map.fitBounds($bounds, {
-        padding: {
-            bottom: $media.tablet?0:100,
-            top: $media.tablet?0:100,
-            left: $media.tablet?0:350,
-            right: $media.tablet?0:80
-        }
-    });
-    $: map && $mapPosition && map.flyTo({
-        center: $mapPosition,
-        zoom: 18,
-        padding: {
-            bottom: $media.tablet?0:0,
-            left: $media.tablet?0:390
-        }
-    }) && updateMarkers(); // TODO : global variable for left nav
+    /*    $: map && map.getSource('data') && map.getSource('data').setData($geojson); // && updateMarkers() && console.log('REACTIVE map setData (source updated) !');
+        $: map && map.fitBounds($bounds, {
+            padding: {
+                bottom: $media.tablet ? 0 : 100,
+                top: $media.tablet ? 0 : 100,
+                left: $media.tablet ? 0 : 350,
+                right: $media.tablet ? 0 : 80
+            }
+        });
+        $: map && $mapPosition && map.flyTo({
+            center: $mapPosition,
+            zoom: 18,
+            padding: {
+                bottom: $media.tablet ? 0 : 0,
+                left: $media.tablet ? 0 : 390
+            }
+        }) && updateMarkers(); // TODO : global variable for left nav*/
 
     var layers = [];
 
     onMount(async () => {
-        await geojson.updateWhereQuery();
+        await geojson.updateWhereQuery(config.data.where);
         bounds.init_or_reset($geojson);
 
         map = new mapbox.Map({
@@ -66,163 +66,151 @@
             map.addSource('data', {
                 type: 'geojson',
                 data: $geojson,
+                //data: $geojson,
                 cluster: true,
                 //clusterId: 'clusters',
-                clusterMaxZoom: 22, // Max zoom to cluster points on
-                clusterRadius: 25, // Radius of each cluster when clustering points (defaults to 50)
-                clusterProperties: createClusterProperties()
+                clusterMaxZoom: 5, // Max zoom to cluster points on
+                clusterRadius: 100, // Radius of each cluster when clustering points (defaults to 50)
+                //clusterProperties: createClusterProperties()
             });
 
             // after the GeoJSON data is loaded, update markers on the screen and do so on every map move/moveend
-            map.on('data', function (e) {
+            /*map.on('data', function (e) {
                 if (e.sourceId !== 'data' || !e.isSourceLoaded) return;
                 console.log("reload data !");
 
-                map.on('move', updateMarkers);
+                /!*map.on('move', updateMarkers);
                 map.on('moveend', updateMarkers);
-                updateMarkers();
+                updateMarkers();*!/
+            });*/
+
+            map.addLayer({
+                'id': "points",
+                'type': 'circle',
+                'cluster': false,
+                'source': 'data',
+                'layout': {},
+                'paint': {
+                    'circle-radius': [
+                        'interpolate', ['linear'], ['zoom'],
+                        8, 1,
+                        15, 2,
+                        19, 6,
+                        22, 10
+                    ],
+                    'circle-opacity': 0.8,
+                    'circle-color': [
+                        'match',
+                        ['get', 'stadedeveloppement'],
+                        'A',
+                        'red',
+                        'J',
+                        'blue',
+                        'JA',
+                        'yellow',
+                        'M',
+                        'orange',
+                        /* other */ 'black'
+                    ]
+                }
             });
 
-            /* Symbols */
-            var symbols = $geojson.features.reduce((acc, feature) => {
-                if (!feature.properties['type']) {
-                    return acc;
+            map.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'data',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': [
+                        'step',
+                        ['get', 'point_count'],
+                        '#51bbd6',
+                        100,
+                        '#f1f075',
+                        750,
+                        '#f28cb1'
+                    ],
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        20,
+                        100,
+                        30,
+                        750,
+                        40
+                    ]
                 }
-                var test = feature.properties['type'];
-                if (acc.includes(test)) {
-                    return acc;
+            });
+
+            map.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'data',
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                    'text-size': 12
+                }
+            });
+
+            map.on('click', function (e) {
+                console.log('click in the map !!');
+                console.log(map.queryRenderedFeatures(e.point));
+
+                var items = map.queryRenderedFeatures(e.point, {
+                    layers: ['points']
+                });
+                if (items.length == 1) {
+                    listPosition.scrollTo(items[0].properties.feature_id);
+                }
+                if (items.length > 1) {
+                    var coordinates = e.lngLat;
+                    var el = document.createElement('div');
+                    items.forEach((item) => {
+                        var div = document.createElement('div');
+                        div.classList.add('is-flex', 'is-align-items-center', 'poi');
+
+                        var img = document.createElement('img');
+                        img.src = 'static/img/' + config.pictos[item.properties[config.data.type_field]].name + '.png';
+                        div.appendChild(img);
+
+                        var label = document.createElement('p');
+                        label.innerText = item.properties.name;
+                        div.appendChild(label);
+
+                        div.addEventListener('click', (e) => {
+                            var event_local_feature_id = item.properties.feature_id;
+                            listPosition.scrollTo(event_local_feature_id);
+                        });
+
+                        el.appendChild(div);
+                    });
+
+                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                    }
+
+                    new mapbox.Popup()
+                            .setLngLat(items[0].geometry.coordinates)
+                            .setDOMContent(el)
+                            .addTo(map);
+                }
+            });
+
+            map.on('mousemove', function (e) {
+                var items = map.queryRenderedFeatures(e.point, {
+                    layers: ['points']
+                });
+                if (items.length > 0) {
+                    map.getCanvas().style.cursor = 'pointer';
                 } else {
-                    return [...acc, test];
+                    map.getCanvas().style.cursor = 'default';
                 }
-            }, []);
-            symbols.forEach(function (symbol) {
-                var layerID = 'poi-' + symbol;
-                map.loadImage('static/img/' + symbol + '.png', (error, image) => {
-                    if (error) throw error;
-                    map.addImage(symbol, image);
-                    map.addLayer({
-                        'id': layerID,
-                        'type': 'symbol',
-                        'cluster': false,
-                        'source': 'data',
-                        'layout': {
-                            'icon-image': symbol,
-                            'icon-size': 0.45,
-                            'icon-allow-overlap': true,
-                            'text-allow-overlap': true,
-                            "text-field": "{name}",
-                            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-                            "text-size": 11,
-                            "text-offset": [0, 1.2],
-                            "text-anchor": "top"
-                        },
-                        'filter': ['==', 'type', symbol]
-                    });
-                    layers.push(layerID);
-                });
             });
         });
 
-        map.on('click', function (e) {
-            console.log('click in the map !!');
-            console.log(map.queryRenderedFeatures(e.point));
-
-            var items = map.queryRenderedFeatures(e.point, {
-                layers: layers
-            });
-            if (items.length == 1) {
-                listPosition.scrollTo(items[0].properties.feature_id);
-            }
-            if (items.length > 1) {
-                var coordinates = e.lngLat;
-                var el = document.createElement('div');
-                items.forEach((item) => {
-                    var div = document.createElement('div');
-                    div.classList.add('is-flex', 'is-align-items-center', 'poi');
-
-                    var img = document.createElement('img');
-                    img.src = 'static/img/' + config.pictos[item.properties.type_de_commerce].name + '.png';
-                    div.appendChild(img);
-
-                    var label = document.createElement('p');
-                    label.innerText = item.properties.name;
-                    div.appendChild(label);
-
-                    div.addEventListener('click', (e) => {
-                        var event_local_feature_id = item.properties.feature_id;
-                        listPosition.scrollTo(event_local_feature_id);
-                    });
-
-                    el.appendChild(div);
-                });
-
-                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                }
-
-                new mapbox.Popup()
-                        .setLngLat(items[0].geometry.coordinates)
-                        .setDOMContent(el)
-                        .addTo(map);
-            }
-        });
-
-        map.on('mousemove', function (e) {
-            var items = map.queryRenderedFeatures(e.point, {
-                layers: layers
-            });
-            if (items.length > 0) {
-                map.getCanvas().style.cursor = 'pointer';
-            } else {
-                map.getCanvas().style.cursor = 'default';
-            }
-        });
     });
-
-    function updateMarkers() {
-        var newMarkers = {};
-        var features = map.querySourceFeatures('data');
-        // for every cluster on the screen, create an HTML marker for it (if we didn't yet),
-        // and add it to the map if it's not there already
-        for (var i = 0; i < features.length; i++) {
-            var coords = features[i].geometry.coordinates;
-            var props = features[i].properties;
-            if (!props.cluster) continue;
-            var id = props.cluster_id;
-            var count = props.point_count;
-            var source = map.getSource('data');
-            source.getClusterLeaves(id, count, 0, function (error, features) {
-                //console.log('Cluster leaves:', error, features);
-            });
-
-            var marker = markers[id];
-            if (!marker) {
-                var el = createDonutChart(props);
-                el['dataset']['cluster_id'] = id;
-                el['dataset']['cluster_count'] = count;
-                el['dataset']['cluster_lnglat'] = coords;
-                marker = markers[id] = new mapbox.Marker({
-                    element: el
-                }).setLngLat(coords);
-                marker.getElement().addEventListener('click', (e) => {
-                    var eldataset = e.target['dataset'];
-                    var elcoords = eldataset['cluster_lnglat'].split(',');
-                    map.easeTo({
-                        center: {lon: elcoords[0], lat: elcoords[1]},
-                        zoom: map.getZoom() + 2
-                    })
-                });
-            }
-            newMarkers[id] = marker;
-
-            if (!markersOnScreen[id]) marker.addTo(map);
-        }
-        // for every marker we've added previously, remove those that are no longer visible
-        for (id in markersOnScreen) {
-            if (!newMarkers[id]) markersOnScreen[id].remove();
-        }
-        markersOnScreen = newMarkers;
-    }
 
 </script>
 

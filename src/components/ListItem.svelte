@@ -57,12 +57,12 @@
 
 <li class="listitem" data-featureid="{feature.properties.feature_id}" bind:this={listitem}>
     <div class="card is-radiusless p-2"
-         style="border-left: 6px solid {(config.pictos[feature.properties.type_de_commerce] || config.pictos['default']).color}">
+         style="border-left: 6px solid {(config.pictos[feature.properties[config.data.type_field]] || config.pictos['default']).color}">
         <div class="card-content p-0">
             <div class="media">
                 <div class="media-left">
                     <figure class="image is-32x32">
-                        <img alt="poi type icon" src="{'static/img/' + (config.pictos[feature.properties.type_de_commerce] || config.pictos['default']).name + '.png'}"/>
+                        <img alt="poi type icon" src="{'static/img/' + (config.pictos[feature.properties[config.data.type_field]] || config.pictos['default']).name + '.png'}"/>
                     </figure>
                 </div>
                 <div class="media-content">
@@ -96,7 +96,7 @@
                 <div class="media">
                     <div class="media-left">
                         <figure class="image is-48x48">
-                            <img alt="poi type icon" src="{'static/img/' + (config.pictos[feature.properties.type_de_commerce] || config.pictos['default']).name + '.png'}"/>
+                            <img alt="poi type icon" src="{'static/img/' + (config.pictos[feature.properties[config.data.type_field]] || config.pictos['default']).name + '.png'}"/>
                         </figure>
                     </div>
                     <div class="media-content">

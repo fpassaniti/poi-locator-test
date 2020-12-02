@@ -16,6 +16,7 @@
     <!--<MapStyleSelect></MapStyleSelect>-->
 </Map>
 
+<!--
 {#if $sortedGeojson.features && Array.isArray($sortedGeojson.features) }
     <List>
         {#each $sortedGeojson.features as feature}
@@ -24,6 +25,7 @@
     </List>
 {/if}
 
+-->
 
 <style global lang="scss">
     @import "style/main.scss";
