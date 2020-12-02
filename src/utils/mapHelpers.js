@@ -9,7 +9,7 @@ const colors = Object.keys(config.pictos).reduce((acc, key) => {
 }, []);
 
 // code for creating an SVG donut chart from feature properties
-export function createDonutChart(props) {
+export function createDonutChart(props, textScale, radiusScale) {
     var offsets = [];
     var counts = types.reduce((acc,type) => {
         return [...acc, props[type]];
@@ -19,14 +19,8 @@ export function createDonutChart(props) {
         offsets.push(total);
         total += counts[i];
     }
-    var fontSize =
-        total >= 100 ? 22 :
-            total >= 30 ? 20 :
-                total >= 5 ? 18 : 16;
-    var r =
-        total >= 100 ? 70 :
-            total >= 30 ? 46 :
-                total >= 5 ? 32 : 24;
+    var fontSize = textScale(total);
+    var r = radiusScale(total);
     var r0 = Math.round(r * 0.7);
     var w = r * 2;
 
@@ -59,7 +53,7 @@ export function createDonutChart(props) {
         r +
         '" r="' +
         r0 +
-        '" fill="white" /><text dominant-baseline="central" transform="translate(' +
+        '" fill="#ffffff88" /><text dominant-baseline="central" transform="translate(' +
         r +
         ', ' +
         r +
@@ -115,7 +109,7 @@ function donutSegment(start, end, r, r0, color) {
 export function createClusterProperties() {
     var cluster_properties = Object.keys(config.pictos).reduce((acc, key) => {
         var obj = config.pictos[key];
-        acc[obj.name] = ['+', ['case', ['==', ['get', 'type'], obj.name], 1, 0]];
+        acc[obj.name] = ['+', ['case', ['==', ['get', config.data.type_field], obj.name], 1, 0]];
         return acc;
     }, {});
     return cluster_properties;

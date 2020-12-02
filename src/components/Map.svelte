@@ -17,6 +17,8 @@
     import config from '../../app.config'
     import {createDonutChart, createClusterProperties} from "../utils/mapHelpers";
 
+    import {scaleLinear} from 'd3-scale';
+
     mapbox.accessToken = config.mapbox.apikey;
 
     let container;
@@ -51,8 +53,8 @@
     var layers = [];
 
     onMount(async () => {
-        await geojson.updateWhereQuery(config.data.where);
-        bounds.init_or_reset($geojson);
+        //await geojson.updateWhereQuery(config.data.where);
+        //bounds.init_or_reset($geojson);
 
         map = new mapbox.Map({
             container,
@@ -60,29 +62,30 @@
             center: config.mapbox.init.center,
             zoom: config.mapbox.init.zoom
         });
-
+        map.addControl(new mapbox.NavigationControl());
         map.on('load', () => {
+            console.log(createClusterProperties());
             /* Data */
             map.addSource('data', {
                 type: 'geojson',
-                data: $geojson,
+                data: 'les-arbres.geojson',
                 //data: $geojson,
                 cluster: true,
                 //clusterId: 'clusters',
-                clusterMaxZoom: 5, // Max zoom to cluster points on
+                clusterMaxZoom: 15, // Max zoom to cluster points on
                 clusterRadius: 100, // Radius of each cluster when clustering points (defaults to 50)
-                //clusterProperties: createClusterProperties()
+                clusterProperties: createClusterProperties()
             });
 
             // after the GeoJSON data is loaded, update markers on the screen and do so on every map move/moveend
-            /*map.on('data', function (e) {
+            map.on('data', function (e) {
                 if (e.sourceId !== 'data' || !e.isSourceLoaded) return;
                 console.log("reload data !");
 
-                /!*map.on('move', updateMarkers);
+                map.on('move', updateMarkers);
                 map.on('moveend', updateMarkers);
-                updateMarkers();*!/
-            });*/
+                updateMarkers();
+            });
 
             map.addLayer({
                 'id': "points",
@@ -103,19 +106,19 @@
                         'match',
                         ['get', 'stadedeveloppement'],
                         'A',
-                        'red',
+                        '#317256',
                         'J',
-                        'blue',
+                        '#398564',
                         'JA',
-                        'yellow',
+                        '#419873',
                         'M',
-                        'orange',
-                        /* other */ 'black'
+                        '#49ab81',
+                        /* other */ '#52bf90'
                     ]
                 }
             });
 
-            map.addLayer({
+            /*map.addLayer({
                 id: 'clusters',
                 type: 'circle',
                 source: 'data',
@@ -152,7 +155,7 @@
                     'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
                     'text-size': 12
                 }
-            });
+            });*/
 
             map.on('click', function (e) {
                 console.log('click in the map !!');
@@ -209,6 +212,69 @@
                 }
             });
         });
+
+
+        function updateMarkers() {
+            var newMarkers = {};
+            var features = map.querySourceFeatures('data');
+            console.log("nb features : " + features.length);
+            // for every cluster on the screen, create an HTML marker for it (if we didn't yet),
+            // and add it to the map if it's not there already
+            var min = Infinity, max = -Infinity;
+            for (var i = 0; i < features.length; i++) {
+                var props = features[i].properties;
+                if (!props.cluster) continue;
+                var count = props.point_count;
+                if (count < min) min = count;
+                if (count > max) max = count;
+            }
+            const textScale = scaleLinear()
+                    .domain([min, max])
+                    .range([16, 22]);
+            const radiusScale = scaleLinear()
+                    .domain([min, max])
+                    .range([24, 70]);
+            console.log(radiusScale(20000));
+
+            console.log("min : ",min,", max : ",max);
+            for (var i = 0; i < features.length; i++) {
+                var coords = features[i].geometry.coordinates;
+                var props = features[i].properties;
+                if (!props.cluster) continue;
+                var id = props.cluster_id;
+                var count = props.point_count;
+                var source = map.getSource('data');
+                /*source.getClusterLeaves(id, count, 0, function (error, features) {
+                    console.log('# Cluster leaves:', error, features.length);
+                });*/
+                var marker = markers[id];
+                if (!marker) {
+                    var el = createDonutChart(props, textScale, radiusScale);
+                    el['dataset']['cluster_id'] = id;
+                    el['dataset']['cluster_count'] = count;
+                    el['dataset']['cluster_lnglat'] = coords;
+                    marker = markers[id] = new mapbox.Marker({
+                        element: el
+                    }).setLngLat(coords);
+                    marker.getElement().addEventListener('click', (e) => {
+                        var eldataset = e.target['dataset'];
+                        var elcoords = eldataset['cluster_lnglat'].split(',');
+                        map.easeTo({
+                            center: {lon: elcoords[0], lat: elcoords[1]},
+                            zoom: map.getZoom() + 2
+                        })
+                    });
+                }
+                newMarkers[id] = marker;
+                if (!markersOnScreen[id]) marker.addTo(map);
+            }
+            // for every marker we've added previously, remove those that are no longer visible
+            for (id in markersOnScreen) {
+                if (!newMarkers[id]) markersOnScreen[id].remove();
+            }
+            markersOnScreen = newMarkers;
+        }
+
 
     });
 

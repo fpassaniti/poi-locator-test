@@ -33,6 +33,7 @@
   "dependencies": {
     "@mapbox/mapbox-gl-geocoder": "^4.7.0",
     "@turf/turf": "^5.1.6",
+    "d3-scale": "^3.2.3",
     "mapbox-gl": "^1.12.0"
   }
 }

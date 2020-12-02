@@ -13,6 +13,7 @@ export default {
             zoom: 11,
             center: [2.349215,48.853987]
         },
+        //style: "mapbox://styles/mapbox/satellite-streets-v11",
         style: "mapbox://styles/mapbox/light-v10",
         geocoder: { /* Narrow search results to the defined boundingbox to avoid to many noises */
             searchbbox: [1.693402,48.631097,3.011761,49.072970],
@@ -31,7 +32,7 @@ export default {
                 "fontclass":
                     "",
                 "color":
-                    "#f5f5f5"
+                    "#52bf90"
             },
         "null": // empty field from API
             {
@@ -41,50 +42,50 @@ export default {
                 "fontclass":
                     "",
                 "color":
-                    "#f5f5f5"
+                    "#52bf90"
             },
         "A":
             {
-                "name": "a",
+                "name": "A",
                 "url":
                     "static/img/pin.svg",
                 "fontclass":
                     "icon-traiteur",
                 "color":
-                    "#FDD98B"
+                    "#317256"
             }
         ,
         "J":
             {
-                "name": "j",
+                "name": "J",
                 "url":
                     "static/img/pin.svg",
                 "fontclass":
                     "icon-primeur",
                 "color":
-                    "#1EA81A"
+                    "#398564"
             }
         ,
         "JA":
             {
-                "name": "ja",
+                "name": "JA",
                 "url":
                     "static/img/pin.svg",
                 "fontclass":
                     "icon-poissonnerie",
                 "color":
-                    "#86B1FC"
+                    "#419873"
             }
         ,
         "M":
             {
-                "name": "m",
+                "name": "M",
                 "url":
                     "static/img/pin.svg",
                 "fontclass":
                     "icon-truck",
                 "color":
-                    "#364852"
+                    "#49ab81"
             }
     }
 };
