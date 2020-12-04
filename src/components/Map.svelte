@@ -53,7 +53,7 @@
     var layers = [];
 
     onMount(async () => {
-        //await geojson.updateWhereQuery(config.data.where);
+        await geojson.updateWhereQuery(config.data.where);
         //bounds.init_or_reset($geojson);
 
         map = new mapbox.Map({
@@ -68,11 +68,12 @@
             /* Data */
             map.addSource('data', {
                 type: 'geojson',
-                data: 'les-arbres.geojson',
-                //data: $geojson,
+                //data: 'res_equipements_2017.geojson',
+                //data: 'les-arbres.geojson',
+                data: $geojson,
                 cluster: true,
                 //clusterId: 'clusters',
-                clusterMaxZoom: 15, // Max zoom to cluster points on
+                clusterMaxZoom: 12, // Max zoom to cluster points on
                 clusterRadius: 100, // Radius of each cluster when clustering points (defaults to 50)
                 clusterProperties: createClusterProperties()
             });

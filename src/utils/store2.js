@@ -12,7 +12,7 @@ function createStore() {
         url = getGeoJsonExportUrl(url);
         url = addWhereQuery(url)(whereQuery);
         config.data.select && (url = addSelectQuery(url)(config.data.select));
-        url = addRowsQuery(url)(-1);
+        url = addRowsQuery(url)(49999);
 
         const promiseFromServ = await fetch(url);
         const geojson = await promiseFromServ.json();
