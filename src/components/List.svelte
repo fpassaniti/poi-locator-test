@@ -2,6 +2,7 @@
     import {geojson} from '../utils/store2'
     import {listPosition, mapPosition} from '../utils/position'
     import {onMount} from "svelte";
+    import Filter from "./Filter.svelte";
 
     let list
     let value
@@ -46,6 +47,7 @@
               <img src="static/img/search.svg"/>
             </span>
         </p>
+        <Filter></Filter>
     </div>
     <ul id="markers">
         <slot></slot>
